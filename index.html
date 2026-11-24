@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>revise · flashcards and focus timer</title>
+<meta name="description" content="Offline flashcards with spaced repetition, plus a focus timer. Your data stays on your device.">
+<meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <a class="logo" href="#study" aria-label="revise home"><img src="icon.svg" alt="" width="28" height="28"><span>revise</span></a>
+  <nav aria-label="Sections">
+    <a href="#study" data-view="study">Study</a>
+    <a href="#decks" data-view="decks">Decks</a>
+    <a href="#focus" data-view="focus">Focus</a>
+    <a href="#stats" data-view="stats">Stats</a>
+  </nav>
+</header>
+
+<main id="app">
+  <!-- STUDY -->
+  <section id="v-study" class="view" aria-labelledby="h-study">
+    <div class="row between">
+      <h1 id="h-study" class="sr-only">Study</h1>
+      <label class="select">Deck <select id="studyDeck"></select></label>
+      <p class="counts" id="studyCounts"></p>
+    </div>
+    <div class="card-wrap">
+      <article class="flash" id="flash" aria-live="polite">
+        <p class="side-label" id="sideLabel">Question</p>
+        <div class="front" id="front"></div>
+        <div class="back" id="back" hidden></div>
+      </article>
+      <div class="answer" id="answerBar">
+        <button class="btn primary big" id="show">Show answer <kbd>Space</kbd></button>
+      </div>
+      <div class="grades" id="grades" hidden>
+        <button class="g again" data-g="0"><b>Again</b><span></span><kbd>1</kbd></button>
+        <button class="g hard" data-g="1"><b>Hard</b><span></span><kbd>2</kbd></button>
+        <button class="g good" data-g="2"><b>Good</b><span></span><kbd>3</kbd></button>
+        <button class="g easy" data-g="3"><b>Easy</b><span></span><kbd>4</kbd></button>
+      </div>
+      <div class="done" id="done" hidden>
+        <p class="big-emoji" aria-hidden="true">✓</p>
+        <h2>All done for now</h2>
+        <p id="doneMsg"></p>
+        <div class="row center"><a class="btn" href="#decks">Add cards</a><a class="btn" href="#focus">Start a focus session</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECKS -->
+  <section id="v-decks" class="view" hidden aria-labelledby="h-decks">
+    <div class="row between">
+      <h1 id="h-decks">Decks</h1>
+      <div class="row"><button class="btn" id="newDeck">New deck</button></div>
+    </div>
+    <ul class="deck-list" id="deckList"></ul>
+    <div class="panel" id="deckEditor" hidden>
+      <div class="row between"><h2 id="edName"></h2><button class="btn" id="edClose">Close</button></div>
+      <form class="add" id="addForm">
+        <label>Front <textarea id="addFront" rows="2" required></textarea></label>
+        <label>Back <textarea id="addBack" rows="2" required></textarea></label>
+        <button class="btn primary">Add card</button>
+      </form>
+      <details class="bulk">
+        <summary>Paste many cards at once</summary>
+        <p class="muted">One card per line: <code>front[Tab]back</code>, <code>front;back</code> or <code>front, back</code>. Copying two columns from a spreadsheet works.</p>
+        <textarea id="bulkText" rows="6" placeholder="Weight;W = mg&#10;Density;ρ = m/V"></textarea>
+        <button class="btn" id="bulkAdd">Add these cards</button>
+      </details>
+      <input class="search" id="cardSearch" type="search" placeholder="Search cards" aria-label="Search cards">
+      <ul class="card-list" id="cardList"></ul>
+      <div class="row">
+        <button class="btn" id="edRename">Rename</button>
+        <button class="btn" id="edExport">Export CSV</button>
+        <button class="btn danger" id="edDelete">Delete deck</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Backup</h2>
+      <p class="muted">Everything is saved in this browser only. Export a backup to move it to another device.</p>
+      <div class="row"><button class="btn" id="backup">Export backup</button><label class="btn file">Import backup<input type="file" id="restore" accept=".json,application/json" hidden></label></div>
+    </div>
+  </section>
+
+  <!-- FOCUS -->
+  <section id="v-focus" class="view" hidden aria-labelledby="h-focus">
+    <h1 id="h-focus" class="sr-only">Focus timer</h1>
+    <div class="timer">
+      <svg viewBox="0 0 200 200" class="ring" aria-hidden="true"><circle cx="100" cy="100" r="88" class="track"/><circle cx="100" cy="100" r="88" class="prog" id="ring"/></svg>
+      <div class="t-inner">
+        <p class="t-mode" id="tMode">Focus</p>
+        <p class="t-time" id="tTime" role="timer" aria-live="off">25:00</p>
+        <p class="t-sub" id="tSub">Session 1 today</p>
+      </div>
+    </div>
+    <div class="row center">
+      <button class="btn primary big" id="tStart">Start</button>
+      <button class="btn big" id="tReset">Reset</button>
+      <button class="btn big" id="tSkip">Skip</button>
+    </div>
+    <div class="row center settings">
+      <label>Focus <input type="number" id="setFocus" min="1" max="120"> min</label>
+      <label>Break <input type="number" id="setBreak" min="1" max="60"> min</label>
+      <label class="check"><input type="checkbox" id="setSound"> Sound</label>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="v-stats" class="view" hidden aria-labelledby="h-stats">
+    <h1 id="h-stats">Stats</h1>
+    <div class="tiles" id="tiles"></div>
+    <div class="panel"><h2>Reviews, last 30 days</h2><div id="chart" class="chart"></div></div>
+    <div class="panel"><h2>Cards by stage</h2><div id="stages" class="stages"></div></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="srs.js"></script>
+<script src="samples.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
