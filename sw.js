@@ -1,5 +1,5 @@
 // Offline support: cache the app files, serve from cache, refresh in the background.
-const CACHE = "revise-v1";
+const CACHE = "revise-v2";
 const FILES = ["./", "index.html", "style.css", "app.js", "srs.js", "samples.js", "icon.svg", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())));

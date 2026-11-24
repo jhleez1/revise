@@ -15,7 +15,8 @@
   function fresh() {
     const now = Date.now();
     return {
-      decks: (window.REVISE_SAMPLES || []).map((d) => ({ id: uid(), name: d.name, cards: d.cards.map(([f, b], i) => SRS.newCard(f, b, now + i)) })),
+      // every card is due now; "created" keeps them in order
+      decks: (window.REVISE_SAMPLES || []).map((d) => ({ id: uid(), name: d.name, cards: d.cards.map(([f, b], i) => ({ ...SRS.newCard(f, b, now), created: now + i })) })),
       log: [],                                      // { t, g, deck, wasNew }
       focus: { focusMin: 25, breakMin: 5, sound: true, sessions: [] },
       newPerDay: 20
@@ -176,7 +177,7 @@
     const pairs = SRS.parseCards($("bulkText").value);
     if (!pairs.length) return toast("No cards found. Use one “front;back” per line.");
     const now = Date.now();
-    deckById(editing).cards.push(...pairs.map(([f, b], i) => SRS.newCard(f, b, now + i)));
+    deckById(editing).cards.push(...pairs.map(([f, b], i) => ({ ...SRS.newCard(f, b, now), created: now + i })));
     $("bulkText").value = ""; save(); renderDecks(); toast(`Added ${pairs.length} card${pairs.length > 1 ? "s" : ""}`);
   });
   $("cardSearch").addEventListener("input", renderEditor);
